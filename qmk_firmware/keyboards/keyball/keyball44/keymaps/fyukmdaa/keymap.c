@@ -1,6 +1,23 @@
 #include QMK_KEYBOARD_H
 #include "quantum.h"
 
+// カスタムキーコード（Kb 16〜）
+enum custom_keycodes {
+    TB_VOL = KEYBALL_SAFE_RANGE, // Kb 16: 押している間トラックボールが音量操作
+    TB_ZOOM,                     // Kb 17: 押している間トラックボールがズーム操作
+    TB_BRIGHT,                   // Kb 18: 押している間トラックボールが明るさ操作
+};
+
+// トラックボールモード
+typedef enum {
+    TB_MODE_DEFAULT,
+    TB_MODE_VOLUME,
+    TB_MODE_ZOOM,
+    TB_MODE_BRIGHT,
+} tb_mode_t;
+
+static tb_mode_t tb_mode = TB_MODE_DEFAULT;
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_universal(
@@ -27,8 +44,68 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     _______  , _______  , _______  , _______  , _______  , SCRL_DVD ,                                        CPI_D1K  , _______  , _______  , CPI_I1K  , _______  , KBC_SAVE ,
               QK_BOOT  , KBC_RST  , _______   ,            _______  , _______  ,             _______  , _______  , _______  , KBC_RST  , QK_BOOT
   ),
+  [4] = LAYOUT_universal(
+    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
+    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
+    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
+              _______  , _______  , _______   ,            _______  , _______  ,             _______  , _______  , _______  , _______  , _______
+  ),
 };
 // clang-format on
+
+// トラックボールモード切り替え
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case TB_VOL:
+            tb_mode = record->event.pressed ? TB_MODE_VOLUME : TB_MODE_DEFAULT;
+            return false;
+        case TB_ZOOM:
+            tb_mode = record->event.pressed ? TB_MODE_ZOOM : TB_MODE_DEFAULT;
+            return false;
+        case TB_BRIGHT:
+            tb_mode = record->event.pressed ? TB_MODE_BRIGHT : TB_MODE_DEFAULT;
+            return false;
+        default:
+            return true;
+    }
+}
+
+// トラックボールをエンコーダーとして使う
+static int16_t tb_accumulated = 0;
+#define TB_THRESHOLD 10
+
+void pointing_device_task_user(void) {
+    report_mouse_t report = pointing_device_get_report();
+
+    if (tb_mode != TB_MODE_DEFAULT) {
+        tb_accumulated += report.y;
+
+        if (tb_accumulated > TB_THRESHOLD) {
+            switch (tb_mode) {
+                case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
+                case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
+                default: break;
+            }
+            tb_accumulated = 0;
+        } else if (tb_accumulated < -TB_THRESHOLD) {
+            switch (tb_mode) {
+                case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
+                case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRMU); break;
+                default: break;
+            }
+            tb_accumulated = 0;
+        }
+
+        // モード中はカーソル移動・スクロールを無効化
+        report.x = 0;
+        report.y = 0;
+        pointing_device_set_report(report);
+    }
+
+    pointing_device_send();
+}
 
 layer_state_t layer_state_set_user(layer_state_t state) {
     keyball_set_scroll_mode(get_highest_layer(state) == 3);
