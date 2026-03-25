@@ -18,6 +18,13 @@ typedef enum {
 
 static tb_mode_t tb_mode = TB_MODE_DEFAULT;
 
+static int16_t tb_accumulated = 0;
+#define TB_THRESHOLD 10
+
+static inline int8_t clip2int8(int16_t v) {
+    return (v) < -127 ? -127 : (v) > 127 ? 127 : (int8_t)v;
+}
+
 // clang-format off
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   [0] = LAYOUT_universal(
@@ -71,22 +78,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 // トラックボールをエンコーダーとして使う
-static int16_t tb_accumulated = 0;
-#define TB_THRESHOLD 10
-
-report_mouse_t pointing_device_task_user(report_mouse_t report) {
+void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
     if (tb_mode != TB_MODE_DEFAULT) {
-        tb_accumulated += report.y;
+        // X軸の生の値を使う（keyball44はx/yが入れ替わってる）
+        tb_accumulated += m->x;
 
         if (tb_accumulated > TB_THRESHOLD) {
-            switch (tb_mode) {
-                case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
-                case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
-                default: break;
-            }
-            tb_accumulated = 0;
-        } else if (tb_accumulated < -TB_THRESHOLD) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
                 case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
@@ -94,13 +91,31 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
                 default: break;
             }
             tb_accumulated = 0;
+        } else if (tb_accumulated < -TB_THRESHOLD) {
+            switch (tb_mode) {
+                case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
+                case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
+                default: break;
+            }
+            tb_accumulated = 0;
         }
 
-        report.x = 0;
-        report.y = 0;
+        // モーションを消費して通常の移動を無効化
+        m->x = 0;
+        m->y = 0;
+        return;
     }
 
-    return report;
+    // デフォルト動作（元のコードと同じ）
+    r->x = clip2int8(m->y);
+    r->y = clip2int8(m->x);
+    if (is_left) {
+        r->x = -r->x;
+        r->y = -r->y;
+    }
+    m->x = 0;
+    m->y = 0;
 }
 
 layer_state_t layer_state_set_user(layer_state_t state) {
