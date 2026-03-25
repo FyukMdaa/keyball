@@ -75,33 +75,34 @@ static int16_t tb_accumulated = 0;
 #define TB_THRESHOLD 10
 
 void pointing_device_task_user(void) {
-    report_mouse_t report = pointing_device_get_report();
-
-    if (tb_mode != TB_MODE_DEFAULT) {
-        tb_accumulated += report.y;
-
-        if (tb_accumulated > TB_THRESHOLD) {
-            switch (tb_mode) {
-                case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
-                case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
-                default: break;
+    report_mouse_t pointing_device_task_user(report_mouse_t report) {
+        if (tb_mode != TB_MODE_DEFAULT) {
+            tb_accumulated += report.y;
+    
+            if (tb_accumulated > TB_THRESHOLD) {
+                switch (tb_mode) {
+                    case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
+                    case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
+                    case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
+                    default: break;
+                }
+                tb_accumulated = 0;
+            } else if (tb_accumulated < -TB_THRESHOLD) {
+                switch (tb_mode) {
+                    case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
+                    case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
+                    case TB_MODE_BRIGHT: tap_code(KC_BRMU); break;
+                    default: break;
+                }
+                tb_accumulated = 0;
             }
-            tb_accumulated = 0;
-        } else if (tb_accumulated < -TB_THRESHOLD) {
-            switch (tb_mode) {
-                case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
-                case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRMU); break;
-                default: break;
-            }
-            tb_accumulated = 0;
+    
+            // モード中はカーソル移動を無効化
+            report.x = 0;
+            report.y = 0;
         }
-
-        // モード中はカーソル移動・スクロールを無効化
-        report.x = 0;
-        report.y = 0;
-        pointing_device_set_report(report);
+    
+        return report;
     }
 
     pointing_device_send();
