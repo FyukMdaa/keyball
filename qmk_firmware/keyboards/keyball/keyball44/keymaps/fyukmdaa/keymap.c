@@ -77,37 +77,35 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     }
 }
 
-// トラックボールをエンコーダーとして使う
-void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
-    report_mouse_t pointing_device_task_user(report_mouse_t report) {
-        if (tb_mode != TB_MODE_DEFAULT) {
-            tb_accumulated += report.x;  // keyball44はreport.xが縦方向
-    
-            if (tb_accumulated > TB_THRESHOLD) {
-                switch (tb_mode) {
-                    case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
-                    case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
-                    case TB_MODE_BRIGHT: tap_code(KC_BRMU); break;
-                    default: break;
-                }
-                tb_accumulated = 0;
-            } else if (tb_accumulated < -TB_THRESHOLD) {
-                switch (tb_mode) {
-                    case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
-                    case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
-                    case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
-                    default: break;
-                }
-                tb_accumulated = 0;
+// pointing_device_task_user
+report_mouse_t pointing_device_task_user(report_mouse_t report) {
+    if (tb_mode != TB_MODE_DEFAULT) {
+        tb_accumulated += report.x;
+        if (tb_accumulated > TB_THRESHOLD) {
+            switch (tb_mode) {
+                case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
+                case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRMU); break;
+                default: break;
             }
-    
-            report.x = 0;
-            report.y = 0;
+            tb_accumulated = 0;
+        } else if (tb_accumulated < -TB_THRESHOLD) {
+            switch (tb_mode) {
+                case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
+                case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
+                default: break;
+            }
+            tb_accumulated = 0;
         }
-        return report;
+        report.x = 0;
+        report.y = 0;
     }
+    return report;
+}
 
-    // デフォルト動作（元のコードと同じ）
+// keyball_on_apply_motion_to_mouse_move
+void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
     r->x = clip2int8(m->y);
     r->y = clip2int8(m->x);
     if (is_left) {
