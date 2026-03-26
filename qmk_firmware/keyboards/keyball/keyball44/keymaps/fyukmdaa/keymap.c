@@ -79,32 +79,32 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 
 // トラックボールをエンコーダーとして使う
 void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
-    if (tb_mode != TB_MODE_DEFAULT) {
-        // X軸の生の値を使う（keyball44はx/yが入れ替わってる）
-        tb_accumulated += m->x;
-
-        if (tb_accumulated > TB_THRESHOLD) {
-            switch (tb_mode) {
-                case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
-                case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRMU); break;
-                default: break;
+    report_mouse_t pointing_device_task_user(report_mouse_t report) {
+        if (tb_mode != TB_MODE_DEFAULT) {
+            tb_accumulated += report.x;  // keyball44はreport.xが縦方向
+    
+            if (tb_accumulated > TB_THRESHOLD) {
+                switch (tb_mode) {
+                    case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
+                    case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
+                    case TB_MODE_BRIGHT: tap_code(KC_BRMU); break;
+                    default: break;
+                }
+                tb_accumulated = 0;
+            } else if (tb_accumulated < -TB_THRESHOLD) {
+                switch (tb_mode) {
+                    case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
+                    case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
+                    case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
+                    default: break;
+                }
+                tb_accumulated = 0;
             }
-            tb_accumulated = 0;
-        } else if (tb_accumulated < -TB_THRESHOLD) {
-            switch (tb_mode) {
-                case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
-                case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
-                default: break;
-            }
-            tb_accumulated = 0;
+    
+            report.x = 0;
+            report.y = 0;
         }
-
-        // モーションを消費して通常の移動を無効化
-        m->x = 0;
-        m->y = 0;
-        return;
+        return report;
     }
 
     // デフォルト動作（元のコードと同じ）
