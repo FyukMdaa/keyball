@@ -31,7 +31,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_ESC   , KC_Q     , KC_W     , KC_E     , KC_R     , KC_T     ,                                        KC_Y     , KC_U     , KC_I     , KC_O     , KC_P     , KC_DEL   ,
     KC_TAB   , KC_A     , KC_S     , KC_D     , KC_F     , KC_G     ,                                        KC_H     , KC_J     , KC_K     , KC_L     , KC_SCLN  , S(KC_7)  ,
     KC_LSFT  , KC_Z     , KC_X     , KC_C     , KC_V     , KC_B     ,                                        KC_N     , KC_M     , KC_COMM  , KC_DOT   , KC_SLSH  , KC_INT1  ,
-              KC_LALT,KC_LGUI,LCTL_T(KC_LNG2),LT(1,KC_SPC),LT(3,KC_LNG1),             KC_BSPC,LT(2,KC_ENT),RCTL_T(KC_LNG2),KC_RALT,KC_PSCR
+              KC_LALT,KC_LGUI,LCTL_T(KC_LNG2),LT(1,KC_SPC),LT(3,KC_LNG1),             KC_BSPC,LT(2,KC_ENT),RCTL_T(KC_LNG2),KC_RALT,LT(4,KC_PSCR)
   ),
   [1] = LAYOUT_universal(
     AML_TO   , KC_F1    , KC_F2    , KC_F3    , KC_F4    , KC_F5    ,                                        KC_F6    , KC_F7    , KC_F8    , KC_F9    , KC_F10   , KC_F11   ,
@@ -53,7 +53,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [4] = LAYOUT_universal(
     _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
-    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
+    _______  , _______  , _______  , KC_BRID  , KC_BRIU  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
     _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
                   _______  , _______  , _______  ,        _______  , _______  ,                   _______  , _______  , _______       , _______  , _______
   ),
@@ -84,7 +84,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
         if (tb_accumulated > TB_THRESHOLD) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
-                case TB_MODE_ZOOM:   tap_code16(C(KC_PPLS)); break;
+                case TB_MODE_ZOOM:   tap_code16(C(S(KC_EQL))); break;
                 case TB_MODE_BRIGHT: tap_code(KC_BRIGHTNESS_UP); break;
                 default: break;
             }
