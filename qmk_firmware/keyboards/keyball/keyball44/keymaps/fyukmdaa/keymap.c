@@ -19,7 +19,7 @@ typedef enum {
 static tb_mode_t tb_mode = TB_MODE_DEFAULT;
 
 static int16_t tb_accumulated = 0;
-#define TB_THRESHOLD 3
+#define TB_THRESHOLD 10
 
 static inline int8_t clip2int8(int16_t v) {
     return (v) < -127 ? -127 : (v) > 127 ? 127 : (int8_t)v;
