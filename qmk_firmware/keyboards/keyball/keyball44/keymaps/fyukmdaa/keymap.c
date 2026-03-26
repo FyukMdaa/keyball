@@ -53,8 +53,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [4] = LAYOUT_universal(
     _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
-    _______  , _______  , _______  , KC_BRID  , KC_BRIU  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
     _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
+    _______  , _______  , TB_VOL   , TB_ZOOM  , TB_BRIGHT , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
                   _______  , _______  , _______  ,        _______  , _______  ,                   _______  , _______  , _______       , _______  , _______
   ),
 };
@@ -65,12 +65,15 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     switch (keycode) {
         case TB_VOL:
             tb_mode = record->event.pressed ? TB_MODE_VOLUME : TB_MODE_DEFAULT;
+            keyball_set_scroll_mode(get_highest_layer(layer_state) == 3 && tb_mode == TB_MODE_DEFAULT);
             return false;
         case TB_ZOOM:
             tb_mode = record->event.pressed ? TB_MODE_ZOOM : TB_MODE_DEFAULT;
+            keyball_set_scroll_mode(get_highest_layer(layer_state) == 3 && tb_mode == TB_MODE_DEFAULT);
             return false;
         case TB_BRIGHT:
             tb_mode = record->event.pressed ? TB_MODE_BRIGHT : TB_MODE_DEFAULT;
+            keyball_set_scroll_mode(get_highest_layer(layer_state) == 3 && tb_mode == TB_MODE_DEFAULT);
             return false;
         default:
             return true;
@@ -84,7 +87,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
         if (tb_accumulated > TB_THRESHOLD) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
-                case TB_MODE_ZOOM:   tap_code16(C(S(KC_SCLN))); break;
+                case TB_MODE_ZOOM:   tap_code16(C(KC_PPLS)); break;
                 case TB_MODE_BRIGHT: tap_code(KC_BRIGHTNESS_UP); break;
                 default: break;
             }
@@ -92,7 +95,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
         } else if (tb_accumulated < -TB_THRESHOLD) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
-                case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
+                case TB_MODE_ZOOM:   tap_code16(C(KC_PMNS)); break;
                 case TB_MODE_BRIGHT: tap_code(KC_BRIGHTNESS_DOWN); break;
                 default: break;
             }
