@@ -85,7 +85,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
                 case TB_MODE_ZOOM:   tap_code16(C(KC_PPLS)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRIU); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRIGHTNESS_UP); break;
                 default: break;
             }
             tb_accumulated = 0;
@@ -93,7 +93,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
                 case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRID); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRIGHTNESS_DOWN); break;
                 default: break;
             }
             tb_accumulated = 0;
