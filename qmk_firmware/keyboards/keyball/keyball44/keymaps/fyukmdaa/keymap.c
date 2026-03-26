@@ -1,11 +1,11 @@
 #include QMK_KEYBOARD_H
 #include "quantum.h"
 
-// カスタムキーコード（Kb 16〜）
+// カスタムキーコード
 enum custom_keycodes {
-    TB_VOL = KEYBALL_SAFE_RANGE, // Kb 16: 押している間トラックボールが音量操作
-    TB_ZOOM,                     // Kb 17: 押している間トラックボールがズーム操作
-    TB_BRIGHT,                   // Kb 18: 押している間トラックボールが明るさ操作
+    TB_VOL = KEYBALL_SAFE_RANGE, // User 0: 押している間トラックボールが音量操作
+    TB_ZOOM,                     // User 1: 押している間トラックボールがズーム操作
+    TB_BRIGHT,                   // User 2: 押している間トラックボールが明るさ操作
 };
 
 // トラックボールモード
@@ -85,7 +85,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
                 case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRMU); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRIU); break;
                 default: break;
             }
             tb_accumulated = 0;
@@ -93,7 +93,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLD); break;
                 case TB_MODE_ZOOM:   tap_code16(C(KC_MINS)); break;
-                case TB_MODE_BRIGHT: tap_code(KC_BRMD); break;
+                case TB_MODE_BRIGHT: tap_code(KC_BRID); break;
                 default: break;
             }
             tb_accumulated = 0;
@@ -117,7 +117,8 @@ void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *
 }
 
 layer_state_t layer_state_set_user(layer_state_t state) {
-    keyball_set_scroll_mode(get_highest_layer(state) == 3);
+    // TBモードキーが押されてたらスクロールをキャンセル
+    keyball_set_scroll_mode(get_highest_layer(state) == 3 && tb_mode == TB_MODE_DEFAULT);
     return state;
 }
 
