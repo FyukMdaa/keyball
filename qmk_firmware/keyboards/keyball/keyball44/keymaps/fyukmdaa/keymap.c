@@ -84,7 +84,7 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
         if (tb_accumulated > TB_THRESHOLD) {
             switch (tb_mode) {
                 case TB_MODE_VOLUME: tap_code(KC_VOLU); break;
-                case TB_MODE_ZOOM:   tap_code16(C(KC_EQL)); break;
+                case TB_MODE_ZOOM:   tap_code16(C(KC_PPLS)); break;
                 case TB_MODE_BRIGHT: tap_code(KC_BRIU); break;
                 default: break;
             }
