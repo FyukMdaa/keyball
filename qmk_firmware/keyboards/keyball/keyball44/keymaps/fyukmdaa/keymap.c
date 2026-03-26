@@ -19,7 +19,7 @@ typedef enum {
 static tb_mode_t tb_mode = TB_MODE_DEFAULT;
 
 static int16_t tb_accumulated = 0;
-#define TB_THRESHOLD 10
+#define TB_THRESHOLD 15
 
 static inline int8_t clip2int8(int16_t v) {
     return (v) < -127 ? -127 : (v) > 127 ? 127 : (int8_t)v;
@@ -31,7 +31,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_ESC   , KC_Q     , KC_W     , KC_E     , KC_R     , KC_T     ,                                        KC_Y     , KC_U     , KC_I     , KC_O     , KC_P     , KC_DEL   ,
     KC_TAB   , KC_A     , KC_S     , KC_D     , KC_F     , KC_G     ,                                        KC_H     , KC_J     , KC_K     , KC_L     , KC_SCLN  , S(KC_7)  ,
     KC_LSFT  , KC_Z     , KC_X     , KC_C     , KC_V     , KC_B     ,                                        KC_N     , KC_M     , KC_COMM  , KC_DOT   , KC_SLSH  , KC_INT1  ,
-              KC_LALT,KC_LGUI,LCTL_T(KC_LNG2),LT(1,KC_SPC),LT(3,KC_LNG1),             KC_BSPC,LT(2,KC_ENT),RCTL_T(KC_LNG2),KC_RALT,LT(4,KC_PSCR)
+              KC_LALT,KC_LGUI,LCTL_T(KC_LNG2),LT(1,KC_SPC),LT(3,KC_LNG1),             KC_BSPC,LT(2,KC_ENT),RCTL_T(KC_LNG2),KC_RALT,KC_PSCR
   ),
   [1] = LAYOUT_universal(
     AML_TO   , KC_F1    , KC_F2    , KC_F3    , KC_F4    , KC_F5    ,                                        KC_F6    , KC_F7    , KC_F8    , KC_F9    , KC_F10   , KC_F11   ,
@@ -47,14 +47,14 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   ),
   [3] = LAYOUT_universal(
     _______  , AML_TO   , AML_I50  , AML_D50  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
-    _______  , _______  , _______  , _______  , _______  , SCRL_DVI ,                                        _______  , CPI_D100 , CPI_I100 , _______  , _______  , _______  ,
+    _______  , _______  , TB_VOL   , TB_ZOOM  , TB_BRIGHT  , SCRL_DVI ,                                        _______  , CPI_D100 , CPI_I100 , _______  , _______  , _______  ,
     _______  , _______  , _______  , _______  , _______  , SCRL_DVD ,                                        CPI_D1K  , _______  , _______  , CPI_I1K  , _______  , KBC_SAVE ,
               QK_BOOT  , KBC_RST  , _______   ,            _______  , _______  ,             _______  , _______  , _______  , KBC_RST  , QK_BOOT
   ),
   [4] = LAYOUT_universal(
-    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
-    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
-    _______  , _______  , TB_VOL   , TB_ZOOM  , TB_BRIGHT , _______  ,                                        _______  , _______  , _______  , _______  , _______  , _______  ,
+    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , SCRL_MO  , _______  , SSNP_FRE  ,
+    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , _______  , KC_BTN2  , SSNP_HOR ,
+    _______  , _______  , _______  , _______  , _______  , _______  ,                                        _______  , _______  , _______  , TB_ZOOM  , KC_BTN1  , SSNP_VRT ,
                   _______  , _______  , _______  ,        _______  , _______  ,                   _______  , _______  , _______       , _______  , _______
   ),
 };
@@ -109,11 +109,22 @@ report_mouse_t pointing_device_task_user(report_mouse_t report) {
 
 // keyball_on_apply_motion_to_mouse_move
 void keyball_on_apply_motion_to_mouse_move(keyball_motion_t *m, report_mouse_t *r, bool is_left) {
-    r->x = clip2int8(m->y);
-    r->y = clip2int8(m->x);
-    if (is_left) {
-        r->x = -r->x;
-        r->y = -r->y;
+    if (get_highest_layer(layer_state) == 4) {
+        // layer4: 90度回転
+        r->x = clip2int8(m->x);
+        r->y = -clip2int8(m->y);
+        if (is_left) {
+            r->x = -r->x;
+            r->y = -r->y;
+        }
+    } else {
+        // デフォルト動作
+        r->x = clip2int8(m->y);
+        r->y = clip2int8(m->x);
+        if (is_left) {
+            r->x = -r->x;
+            r->y = -r->y;
+        }
     }
     m->x = 0;
     m->y = 0;
